@@ -1,3 +1,46 @@
+<?php
+include('conexao.php');
+include('acoes.php');
+
+if(isset($_POST['email']) || isset($_POST['senha'])) {
+    if(strlen($_POST['email']) == 0) {
+        echo "Preencha os dados do email.";
+    } else if(strlen($_POST['senha']) == 0) {
+        echo "Preencha os dados da senha.";
+    } else {
+        $email = $conexao->real_escape_string($_POST['email']);
+        $senha = $_POST['senha']; // Não precisa escapar a senha
+
+        // Busca o usuário pelo email
+        $sql_code = "SELECT * FROM mcusuario WHERE email = '$email'";
+        $sql_query = $conexao->query($sql_code) or die("Erro fatal login: " . $conexao->error);
+
+        $quantidade = $sql_query->num_rows;
+
+        if($quantidade == 1) {
+            $usuario = $sql_query->fetch_assoc();
+
+            // Verifica se a senha corresponde ao hash armazenado
+            if(password_verify($senha, $usuario['senha'])) {
+                if(!isset($_SESSION)) {
+                    session_start();
+                }
+
+                $_SESSION['id'] = $usuario['id'];
+                $_SESSION['email'] = $usuario['email'];
+
+                header("Location: home.php");
+            } else {
+                echo "Senha incorreta.";
+            }
+        } else {
+            echo "Usuário não encontrado.";
+        }
+    }
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
